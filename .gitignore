@@ -1,0 +1,4 @@
+humano
+*.pyc
+.env
+.DS_Store
