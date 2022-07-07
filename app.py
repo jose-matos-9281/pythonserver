@@ -2,7 +2,8 @@
 
 from distutils.log import debug
 from itertools import count
-from dash import Dash, html,dcc
+from msilib.schema import Component
+from dash import Dash, html,dcc,Input, Output
 import plotly.express as px
 import pandas as pd
 import numpy as np
@@ -46,6 +47,18 @@ def diferencia(serie):
         a.append(serie[i]-serie[i-1])
     return a
 
+def generate_table(dataframe, max_rows=10):
+    return html.Table([
+        html.Thead(
+            html.Tr([html.Th(col) for col in dataframe.columns])
+        ),
+        html.Tbody([
+            html.Tr([
+                html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
+            ]) for i in range(min(len(dataframe), max_rows))
+        ])
+    ])
+
 
 # lectura de los datos
 
@@ -57,9 +70,16 @@ data['fecha']= pd.to_datetime(data['fecha'])
 data = num(data,['Confirmados', 'Fallecidos', 'Muestras','Recuperados'])
 hosp['fecha']= pd.to_datetime(hosp['fecha'])
 
-
-
-
+#lista de series
+serie = [ 'Confirmados', 'Fallecidos', 'Muestras', 'Recuperados']
+provincias = ['Azua', 'Baoruco', 'Barahona', 'Dajabón', 'Distrito Nacional', 'Duarte',
+       'El Seibo', 'Elías Piña', 'Espaillat', 'Hato Mayor', 'Hermanas Mirabal',
+       'Independencia', 'La Altagracia', 'La Romana', 'La Vega',
+       'María Trinidad Sánchez', 'Monseñor Nouel', 'Monte Cristi',
+       'Monte Plata', 'Pedernales', 'Peravia', 'Puerto Plata', 'RD', 'Samaná',
+       'San Cristóbal', 'San José de Ocoa', 'San Juan', 'San Pedro de Macorís',
+       'Santiago', 'Santiago Rodríguez', 'Santo Domingo', 'Sánchez Ramírez',
+       'Valverde']
 
 # aplicacion Dash
 app = Dash(__name__)
@@ -68,15 +88,32 @@ app = Dash(__name__)
 #Creacion de la estructura de la pagina 
 app.layout = html.Div( children=[
     html.H1(children='hello Dash'),
-    html.Div(children='''
-        Dash: A web application framework
-    '''),
-    dcc.Graph(
-    )
+    html.H4(children='US Agriculture Exports (2011)'),
+    html.Div([
+        html.Label('Serie'),
+        dcc.RadioItems( serie, 'Confirmados',id='serie',style={'padding': 10, 'flex': 1}),
+        html.Br(),
+        html.Label('Provincias'),
+        dcc.Dropdown( provincias, 'RD', id ='provincia', multi = True)
+         ]),
+    
+    html.Div(id='tabla')
+    
 ])
 
 #Creacion de callbacks, o llamadas
-
+@app.callback(
+    Output('tabla','children'),
+    Input('serie','value'),
+    Input('provincia','value')
+)
+def update_table(serie, provincia):
+    provincia = [provincia] if type(provincia) == str else provincia
+    frame = filtro_P(data,provincia)
+    frame = data_pivot(frame,serie).cumsum()
+    frame.insert(0,'fechas', frame.index)
+    frame['fechas'] = frame.fechas.dt.strftime('%d/%m/%Y')
+    return generate_table(frame,20)
 
 # correr servidor
 if __name__ == '__main__':
