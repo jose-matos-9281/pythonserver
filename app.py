@@ -1,4 +1,4 @@
-# importar librerias
+
 
 from distutils.log import debug
 from itertools import count
@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 
-# funciones definidas
 def num(data,col):
     '''
     limpia la data numerica que tiene un caracter extra '-1
@@ -29,10 +28,8 @@ def data_pivot(data,serie):
     )
     return Frame
 
-#Filtra cuales provincias seran usadas
 filtro_P = lambda data,prov: data[data.Provincia.isin(prov)]
 
-#Filtra la data por un periodo especifico de tiempo
 def filtro_F (data,inicio = dt.datetime(2020,3,19), fin = dt.datetime(2022,7,3)): 
     return data[[data['fecha']>= inicio] and [data['fecha'] <= fin][0]]
 
@@ -60,17 +57,13 @@ def generate_table(dataframe, max_rows=10):
     ])
 
 
-# lectura de los datos
-
 hosp = pd.read_csv('data/hospitalizacion.csv')
 data = pd.read_csv('data/data.csv')
 
-# limpieza de los datos
 data['fecha']= pd.to_datetime(data['fecha'])
 data = num(data,['Confirmados', 'Fallecidos', 'Muestras','Recuperados'])
 hosp['fecha']= pd.to_datetime(hosp['fecha'])
 
-#lista de series
 serie = [ 'Confirmados', 'Fallecidos', 'Muestras', 'Recuperados']
 provincias = ['Azua', 'Baoruco', 'Barahona', 'Dajabón', 'Distrito Nacional', 'Duarte',
        'El Seibo', 'Elías Piña', 'Espaillat', 'Hato Mayor', 'Hermanas Mirabal',
@@ -81,11 +74,9 @@ provincias = ['Azua', 'Baoruco', 'Barahona', 'Dajabón', 'Distrito Nacional', 'D
        'Santiago', 'Santiago Rodríguez', 'Santo Domingo', 'Sánchez Ramírez',
        'Valverde']
 
-# aplicacion Dash
 app = Dash(__name__)
 server = app.server
 
-#Creacion de la estructura de la pagina 
 app.layout = html.Div( children=[
     html.H1(children='hello Dash'),
     html.H4(children='US Agriculture Exports (2011)'),
@@ -101,7 +92,6 @@ app.layout = html.Div( children=[
     
 ])
 
-#Creacion de callbacks, o llamadas
 @app.callback(
     Output('tabla','children'),
     Input('serie','value'),
@@ -115,6 +105,5 @@ def update_table(serie, provincia):
     frame['fechas'] = frame.fechas.dt.strftime('%d/%m/%Y')
     return generate_table(frame,20)
 
-# correr servidor
 if __name__ == '__main__':
     app.run()
