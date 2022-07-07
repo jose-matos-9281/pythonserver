@@ -83,7 +83,7 @@ provincias = ['Azua', 'Baoruco', 'Barahona', 'Dajabón', 'Distrito Nacional', 'D
 
 # aplicacion Dash
 app = Dash(__name__)
-
+server = app.server
 
 #Creacion de la estructura de la pagina 
 app.layout = html.Div( children=[
